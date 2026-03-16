@@ -82,13 +82,8 @@ bot.on('callback_query', (query) => {
     }
 });
 
-// Handle unknown commands/messages
-bot.on('message', (msg) => {
-    const text = msg.text;
-    const chatId = msg.chat.id;
-
-    // Ignore commands already handled
-    if (text.commands[text]) {
-        bot.sendMessage(chatId, "សួរអីក៏ម៉េស ខ្ញុំមាន limit ក្នុងការបង្ហាញ server status បើសួរច្ចើនពេកនោះខ្ញុំនឹងលែងដំណើរការរហូតហើយ កុំសួរច្រើនពេក!🥵");
+// Ignore messages that are already handled commands
+    if (text.startsWith('/') && !commands[text]) {
+        bot.sendMessage(chatId, "❌ Command not recognized. Type /start to see available commands.\nសួរអីក៏ម៉េស ខ្ញុំមាន limit ក្នុងការបង្ហាញ server status បើសួរច្រើនពេក នោះខ្ញុំនឹងលែងដំណើរការរហូតហើយ 😵");
     }
 });
