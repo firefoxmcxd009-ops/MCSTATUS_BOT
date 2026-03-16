@@ -13,6 +13,10 @@ const commands = {
     '/store': 'Show webstore link'
 };
 
+// Cooldown tracking per chat for /status
+const cooldowns = {};
+const COOLDOWN_TIME = 15 * 1000; // 15 seconds
+
 // /start command
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -25,9 +29,16 @@ bot.onText(/\/start/, (msg) => {
     bot.sendMessage(chatId, message);
 });
 
-// /status command
+// /status command with cooldown
 bot.onText(/\/status/, async (msg) => {
     const chatId = msg.chat.id;
+    const now = Date.now();
+
+    if (cooldowns[chatId] && now - cooldowns[chatId] < COOLDOWN_TIME) {
+        return bot.sendMessage(chatId, "🕒 Please wait a few seconds before requesting status again!");
+    }
+    cooldowns[chatId] = now;
+
     try {
         const res = await axios.get(`https://api.mcsrvstat.us/3/${mcServer}`);
         const data = res.data;
@@ -82,7 +93,12 @@ bot.on('callback_query', (query) => {
     }
 });
 
-// Ignore messages that are already handled commands
+// Handle unknown commands/messages
+bot.on('message', (msg) => {
+    const text = msg.text;
+    const chatId = msg.chat.id;
+
+    // Ignore known commands
     if (text.startsWith('/') && !commands[text]) {
         bot.sendMessage(chatId, "❌ Command not recognized. Type /start to see available commands.\nសួរអីក៏ម៉េស ខ្ញុំមាន limit ក្នុងការបង្ហាញ server status បើសួរច្រើនពេក នោះខ្ញុំនឹងលែងដំណើរការរហូតហើយ 😵");
     }
