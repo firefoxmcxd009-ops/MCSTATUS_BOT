@@ -88,7 +88,7 @@ bot.on('message', (msg) => {
     const chatId = msg.chat.id;
 
     // Ignore commands already handled
-    if (text.startsWith('/') && !commands[text]) {
-        bot.sendMessage(chatId, "❌ Command not recognized. Type /start to see available commands.");
+    if (text.commands[text]) {
+        bot.sendMessage(chatId, "សួរអីក៏ម៉េស ខ្ញុំមាន limit ក្នុងការបង្ហាញ server status បើសួរច្ចើនពេកនោះខ្ញុំនឹងលែងដំណើរការរហូតហើយ កុំសួរច្រើនពេក!🥵");
     }
 });
