@@ -7,6 +7,10 @@ const express = require("express")
 const token = process.env.BOT_TOKEN
 const defaultServer = process.env.DEFAULT_SERVER
 const storeUrl = process.env.STORE_URL
+const tiktok = process.env.tiktok
+const telegram = process.env.telegram
+const youtube = process.env.youtube
+const discord = process.env.discord
 
 // ✅ Stable polling config
 const bot = new TelegramBot(token, {
@@ -57,21 +61,30 @@ const cooldownTime = 10000
 const commands = {
   "/start": "Show commands",
   "/status": "Check default server",
-  "/store": "Open webstore"
+  "/store": "Open webstore",
+  "/social-media": "Open webstore"
+}
+
+// ✨ Social Media
+const socials = {
+  "/tiktok": "My Tiktok Account",
+  "/telegram": "My Telegram Account",
+  "/youtube": "My Telegram Youtube",
+  "/discord": "Join My Discord Server",
 }
 
 // /start
 bot.onText(/\/start/, msg => {
 
-  let text = "👋 Minecraft Server Bot\n\nCommands:\n"
+  let text = "👋Hello, I'm MC Status Bot\n\nCommands:\n"
 
   for (let cmd in commands) {
     text += `${cmd} → ${commands[cmd]}\n`
   }
 
   text += "\n💡 Type any server IP to check status"
-
-  bot.sendMessage(msg.chat.id, text)
+  let khmer_translation = "វាយបញ្ចូល server ip ណាមួយដើម្បីឆែកមើល status!"
+  bot.sendMessage(msg.chat.id, text, khmer_translation)
 })
 
 // /status
@@ -85,6 +98,62 @@ bot.onText(/\/store/, msg => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "Open Store", url: storeUrl }]
+      ]
+    }
+  })
+})
+// ============================= //
+// ======= Socail Media ======== //
+// ============================= //
+bot.onText(/\/social-media/, msg => {
+
+  let link = "✨ My Social Media ☄️\n\nCommands:\n"
+
+  for (let cmd in socials) {
+    link += `${cmd} → ${socials[cmd]}\n`
+  }
+
+  link += "\nYou can support me to follow my Tiktok  and Subscribt my YouTube Channel! ;)"
+
+  bot.sendMessage(msg.chat.id, link)
+})
+
+// /tiktok
+bot.onText(/\/store/, msg => {
+  bot.sendMessage(msg.chat.id, "✨TikTok", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "⚡Open TikTok", url: tiktok }]
+      ]
+    }
+  })
+})
+// /telegram
+bot.onText(/\/store/, msg => {
+  bot.sendMessage(msg.chat.id, "✨Telegram", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "⚡View Chat", url: telegram }]
+      ]
+    }
+  })
+})
+// /youtube
+bot.onText(/\/store/, msg => {
+  bot.sendMessage(msg.chat.id, "✨Youtube", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "⚡Open Youtube", url: youtube }]
+      ]
+    }
+  })
+})
+// /discord
+bot.onText(/\/store/, msg => {
+  bot.sendMessage(msg.chat.id, "✨Discord Server", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "⚡Join Discord", url: discord }]
       ]
     }
   })
