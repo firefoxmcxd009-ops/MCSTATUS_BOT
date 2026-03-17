@@ -6,10 +6,20 @@ const express = require("express")
 
 const token = process.env.BOT_TOKEN
 const defaultServer = process.env.DEFAULT_SERVER
+const storeUrl = process.env.STORE_URL
 
-const bot = new TelegramBot(token, { polling: true })
+// ✅ Stable polling config
+const bot = new TelegramBot(token, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  }
+})
 
-// Web server for Render
+// 🌐 Express server (Render required)
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -18,84 +28,89 @@ app.get("/", (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log("Web server running on " + PORT)
+  console.log("Web server running on port " + PORT)
 })
 
-// Anti crash
-process.on("uncaughtException", err => console.log(err))
-process.on("unhandledRejection", err => console.log(err))
+// 🔥 SELF PING (No sleep without UptimeRobot)
+const APP_URL = process.env.APP_URL // put your render URL
 
-// Anti spam cooldown
+if (APP_URL) {
+  setInterval(() => {
+    axios.get(APP_URL).catch(() => {})
+  }, 5 * 60 * 1000) // every 5 min
+}
+
+// 💥 Anti crash
+process.on("uncaughtException", err => console.log("ERROR:", err))
+process.on("unhandledRejection", err => console.log("ERROR:", err))
+
+// 💡 Keep alive log
+setInterval(() => {
+  console.log("Bot still alive 🚀")
+}, 30000)
+
+// ⏳ Cooldown system
 const cooldown = {}
 const cooldownTime = 10000
+
+// 📜 Commands
+const commands = {
+  "/start": "Show commands",
+  "/status": "Check default server",
+  "/store": "Open webstore"
+}
 
 // /start
 bot.onText(/\/start/, msg => {
 
-  const text = `
-👋 Minecraft Server Status Bot
+  let text = "👋 Minecraft Server Bot\n\nCommands:\n"
 
-Commands:
-/status → check default server
-/store → open webstore
+  for (let cmd in commands) {
+    text += `${cmd} → ${commands[cmd]}\n`
+  }
 
-💡 Tip:
-Type any Minecraft IP to check status
-
-Example:
-dinomc.org
-play.hypixel.net
-`
+  text += "\n💡 Type any server IP to check status"
 
   bot.sendMessage(msg.chat.id, text)
-
 })
 
 // /status
 bot.onText(/\/status/, msg => {
-
   sendServer(msg.chat.id, defaultServer)
-
 })
 
 // /store
 bot.onText(/\/store/, msg => {
-
-  bot.sendMessage(msg.chat.id,
-    "🛒 Webstore",
-    {
-      reply_markup:{
-        inline_keyboard:[
-          [{text:"Open Store", url:process.env.STORE_URL}]
-        ]
-      }
+  bot.sendMessage(msg.chat.id, "🛒 Webstore", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "Open Store", url: storeUrl }]
+      ]
     }
-  )
-
+  })
 })
 
-// Function fetch server
-async function sendServer(chatId, ip){
+// 📡 Fetch server info
+async function sendServer(chatId, ip) {
 
   const now = Date.now()
 
-  if(cooldown[chatId] && now - cooldown[chatId] < cooldownTime){
-
-    return bot.sendMessage(chatId,"⏳ Please wait before next request")
-
+  if (cooldown[chatId] && now - cooldown[chatId] < cooldownTime) {
+    return bot.sendMessage(chatId, "⏳ Please wait...")
   }
 
   cooldown[chatId] = now
 
-  try{
+  try {
 
-    const res = await axios.get(`https://api.mcsrvstat.us/3/${ip}`)
+    const res = await axios.get(`https://api.mcsrvstat.us/3/${ip}`, {
+      timeout: 5000
+    })
+
     const data = res.data
 
-    if(!data.online){
-
-      return bot.sendMessage(chatId,`❌ Server ${ip} Offline`)
-
+    if (!data.online) {
+      return bot.sendMessage(chatId, `❌ Server ${ip} Offline`)
     }
 
     const playersOnline = data.players?.online || 0
@@ -118,63 +133,65 @@ async function sendServer(chatId, ip){
 📶 Ping: ${ping} ms
 `
 
-    bot.sendMessage(chatId,message,{
-
-      reply_markup:{
-        inline_keyboard:[
-          [{text:"📋 Copy IP", callback_data:"copy_"+ip}],
-          [{text:"🔄 Refresh", callback_data:"refresh_"+ip}]
+    bot.sendMessage(chatId, message, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "📋 Copy IP", callback_data: "copy_" + ip }],
+          [{ text: "🔄 Refresh", callback_data: "refresh_" + ip }]
         ]
       }
-
     })
 
+  } catch (err) {
+    console.log(err)
+    bot.sendMessage(chatId, "❌ Cannot fetch server info")
   }
-
-  catch(err){
-
-    bot.sendMessage(chatId,"❌ Cannot fetch server info")
-
-  }
-
 }
 
-// Button handler
+// 🔘 Button handler
 bot.on("callback_query", query => {
 
   const chatId = query.message.chat.id
 
-  if(query.data.startsWith("copy_")){
-
-    const ip = query.data.replace("copy_","")
-
-    bot.answerCallbackQuery(query.id,{
-      text:"Server IP: "+ip
+  if (query.data.startsWith("copy_")) {
+    const ip = query.data.replace("copy_", "")
+    bot.answerCallbackQuery(query.id, {
+      text: "Server IP: " + ip
     })
-
   }
 
-  if(query.data.startsWith("refresh_")){
-
-    const ip = query.data.replace("refresh_","")
-
+  if (query.data.startsWith("refresh_")) {
+    const ip = query.data.replace("refresh_", "")
     sendServer(chatId, ip)
-
   }
 
 })
 
-// User types IP
+// 📩 Handle messages
 bot.on("message", msg => {
 
   const text = msg.text
+  if (!text) return
 
-  if(!text) return
+  // "/" → show commands
+  if (text === "/") {
+    let textMsg = "📜 Commands:\n"
+    for (let cmd in commands) {
+      textMsg += `${cmd}\n`
+    }
+    return bot.sendMessage(msg.chat.id, textMsg)
+  }
 
-  if(text.startsWith("/")) return
+  // ignore known commands
+  if (text.startsWith("/") && !commands[text]) {
+    return bot.sendMessage(msg.chat.id, "❌ Unknown command")
+  }
 
-  sendServer(msg.chat.id, text)
+  // custom IP
+  if (!text.startsWith("/")) {
+    sendServer(msg.chat.id, text)
+  }
 
 })
 
-console.log("PRO Minecraft Status Bot Running 🚀")
+console.log("🔥 PRO Bot Running 24/7")
