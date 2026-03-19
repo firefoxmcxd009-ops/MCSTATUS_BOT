@@ -46,8 +46,8 @@ const cooldownTime = 10000
 
 // 📜 Commands
 const commands = {
-  "⚡ខំមិនដែលត្រូវប្រើ ;)"
-  "______________"
+  "⚡ខំមិនដែលត្រូវប្រើ ;)",
+  "______________",
   "/start": "Show commands",
   "/status": "Check default server",
   "/store": "Open store",
