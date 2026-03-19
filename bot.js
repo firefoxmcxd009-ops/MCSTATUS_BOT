@@ -44,10 +44,8 @@ process.on("unhandledRejection", console.log)
 const cooldown = {}
 const cooldownTime = 10000
 
-// 📜 Commands
+// 📜 Commands (FIXED STRUCTURE)
 const commands = {
-  "⚡ខំមិនដែលត្រូវប្រើ ;)",
-  "______________",
   "/start": "Show commands",
   "/status": "Check default server",
   "/store": "Open store",
@@ -55,8 +53,7 @@ const commands = {
   "/tiktok": "TikTok",
   "/telegram": "Telegram",
   "/youtube": "YouTube",
-  "/discord": "Discord",
-  "ជួយ Follow Tiktok ម្នាក់មួយផង :)"
+  "/discord": "Discord"
 }
 
 // /start
@@ -64,10 +61,14 @@ bot.onText(/\/start/, msg => {
 
   let text = "👋 សួរស្តីប្រូៗ ខ្ញុំជា bot សម្រាប់ឆែកមើល Status Server\nCommands:\n"
 
+  text += "⚡ខំមិនដែលត្រូវប្រើ ;)\n"
+  text += "______________\n"
+
   for (let cmd in commands) {
     text += `${cmd} → ${commands[cmd]}\n`
   }
 
+  text += "ជួយ Follow Tiktok ម្នាក់មួយផង :)\n"
   text += "\n💡 Type any server IP to check status\n🇰🇭 វាយ IP server ដើម្បីមើល status"
 
   bot.sendMessage(msg.chat.id, text)
@@ -160,7 +161,7 @@ ___________
     bot.sendMessage(chatId, msg)
 
   } catch {
-    bot.sendMessage(chatId, "❌ Error fetching server
+    bot.sendMessage(chatId, "❌ Error fetching server")
   }
 }
 
@@ -177,7 +178,7 @@ bot.on("message", msg => {
   }
 
   if (text.startsWith("/") && !commands[text]) {
-    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ខំមិនទេ!\n សូម /start ដើម្បីមើលខំមិនទាំងអស់។
+    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ខំមិនទេ!\n សូម /start ដើម្បីមើលខំមិនទាំងអស់។")
   }
 
   if (!text.startsWith("/")) {
