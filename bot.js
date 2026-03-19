@@ -46,6 +46,8 @@ const cooldownTime = 10000
 
 // 📜 Commands
 const commands = {
+  "⚡ខំមិនដែលត្រូវប្រើ ;)"
+  "______________"
   "/start": "Show commands",
   "/status": "Check default server",
   "/store": "Open store",
@@ -53,13 +55,14 @@ const commands = {
   "/tiktok": "TikTok",
   "/telegram": "Telegram",
   "/youtube": "YouTube",
-  "/discord": "Discord"
+  "/discord": "Discord",
+  "ជួយ Follow Tiktok ម្នាក់មួយផង :)"
 }
 
 // /start
 bot.onText(/\/start/, msg => {
 
-  let text = "👋 Hello! MC Status Bot\n\nCommands:\n"
+  let text = "👋 សួរស្តីប្រូៗ ខ្ញុំជា bot សម្រាប់ឆែកមើល Status Server\nCommands:\n"
 
   for (let cmd in commands) {
     text += `${cmd} → ${commands[cmd]}\n`
@@ -77,7 +80,7 @@ bot.onText(/\/status/, msg => {
 
 // /store
 bot.onText(/\/store/, msg => {
-  bot.sendMessage(msg.chat.id, "🛒 Webstore", {
+  bot.sendMessage(msg.chat.id, "🛒 Webstore:\n https://firefoxmckingdomstore.vercel.app", {
     reply_markup: {
       inline_keyboard: [[{ text: "Open Store", url: storeUrl }]]
     }
@@ -102,25 +105,25 @@ bot.onText(/\/social/, msg => {
 
 // Individual commands
 bot.onText(/\/tiktok/, msg => {
-  bot.sendMessage(msg.chat.id, "TikTok", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: tiktok }]] }
+  bot.sendMessage(msg.chat.id, "🔥TikTok:\n https://tiktok.com/@firefoxmc.xd", {
+    reply_markup: { inline_keyboard: [[{ text: "Follow", url: tiktok }]] }
   })
 })
 
 bot.onText(/\/telegram/, msg => {
-  bot.sendMessage(msg.chat.id, "Telegram", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: telegram }]] }
+  bot.sendMessage(msg.chat.id, "⚡Telegram:\n https://t.me/firefoxmc_xd", {
+    reply_markup: { inline_keyboard: [[{ text: "Chat", url: telegram }]] }
   })
 })
 
 bot.onText(/\/youtube/, msg => {
-  bot.sendMessage(msg.chat.id, "YouTube", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: youtube }]] }
+  bot.sendMessage(msg.chat.id, "🌊YouTube:\n https://youtube.com/@site_mckingdom", {
+    reply_markup: { inline_keyboard: [[{ text: "Subscribe", url: youtube }]] }
   })
 })
 
 bot.onText(/\/discord/, msg => {
-  bot.sendMessage(msg.chat.id, "Discord", {
+  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://discord.gg/eAJrmA5jE", {
     reply_markup: { inline_keyboard: [[{ text: "Join", url: discord }]] }
   })
 })
@@ -131,7 +134,7 @@ async function sendServer(chatId, ip) {
   const now = Date.now()
 
   if (cooldown[chatId] && now - cooldown[chatId] < cooldownTime) {
-    return bot.sendMessage(chatId, "⏳ Please wait...")
+    return bot.sendMessage(chatId, "⏳ Discord...")
   }
 
   cooldown[chatId] = now
@@ -142,21 +145,22 @@ async function sendServer(chatId, ip) {
     const data = res.data
 
     if (!data.online) {
-      return bot.sendMessage(chatId, `❌ Server ${ip} Offline`)
+      return bot.sendMessage(chatId, `❌ Server is Offline/Not found.`)
     }
 
     const msg = `
-🖥 ${ip}
-🟢 Online
-👥 ${data.players?.online || 0}/${data.players?.max || 0}
-📦 ${data.version || "Unknown"}
-📶 ${data.debug?.ping || "N/A"} ms
+⟩ Ip: ${ip}
+___________
+⟩ Server's Online :)
+⟩ Players: ${data.players?.online || 0}/${data.players?.max || 0}
+⟩ Version: ${data.version || "Unknown"}
+⟩ Ping: ${data.debug?.ping || "N/A"} ms
 `
 
     bot.sendMessage(chatId, msg)
 
   } catch {
-    bot.sendMessage(chatId, "❌ Error fetching server")
+    bot.sendMessage(chatId, "❌ Error fetching server
   }
 }
 
@@ -173,7 +177,7 @@ bot.on("message", msg => {
   }
 
   if (text.startsWith("/") && !commands[text]) {
-    return bot.sendMessage(msg.chat.id, "❌ Unknown command")
+    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ខំមិនទេ!\n សូម /start ដើម្បីមើលខំមិនទាំងអស់។
   }
 
   if (!text.startsWith("/")) {
