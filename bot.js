@@ -71,7 +71,7 @@ function sendSocial(chatId,text,url){
 // 📡 Send server status with icon (MOTD removed)
 async function sendServer(chatId, ip){
   const now = Date.now()
-  if(cooldown[chatId] && now - cooldown[chatId] < cooldownTime) return bot.sendMessage(chatId,"⏳ Discord...")
+  if(cooldown[chatId] && now - cooldown[chatId] < cooldownTime) return bot.sendMessage(chatId,"⏳ ចាំតិចមើល...")
   cooldown[chatId] = now
 
   try{
