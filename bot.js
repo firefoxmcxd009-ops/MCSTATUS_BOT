@@ -60,8 +60,7 @@ const commands = {
 bot.onText(/\/start/, msg => {
 
   let text = "👋 សួរស្តីប្រូៗ ខ្ញុំជា bot សម្រាប់ឆែកមើល Status Server\nCommands:\n"
-
-  text += "⚡ខំមិនដែលត្រូវប្រើ ;)\n"
+  
   text += "______________\n"
 
   for (let cmd in commands) {
@@ -124,7 +123,7 @@ bot.onText(/\/youtube/, msg => {
 })
 
 bot.onText(/\/discord/, msg => {
-  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://discord.gg/eAJrmA5jE", {
+  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://firefoxmckingdomstore.vercel.app/Discord", {
     reply_markup: { inline_keyboard: [[{ text: "Join", url: discord }]] }
   })
 })
