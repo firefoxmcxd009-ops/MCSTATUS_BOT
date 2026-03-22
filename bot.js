@@ -95,7 +95,7 @@ async function sendServer(chatId, ip) {
 
   } catch (err) {
     console.log(err)
-    bot.sendMessage(chatId, "❌ Error fetching server")
+    bot.sendMessage(chatId, "💀​​​ ខ្ញុំហត់ហើយ...")
   }
 }
 
@@ -122,12 +122,12 @@ bot.onText(/\/start/, msg => {
     text += `${cmd} → ${commands[cmd]}\n`
   }
 
-  text += "ជួយ Follow Tiktok ម្នាក់មួយផង :)\n💡 Type any server IP to check status\n🇰🇭 វាយ IP server ដើម្បីមើល status"
+  text += "ជួយ Follow Tiktok ម្នាក់មួយផង :)\n Type any server IP to check status\n🇰🇭 វាយ IP server ដើម្បីមើល status"
 
   bot.sendMessage(msg.chat.id, text, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "👥 Show Users", callback_data: "show_users" }]
+        [{ text: "👥 បង្ហាញអ្នកប្រើប្រាស់", callback_data: "show_users" }]
       ]
     }
   })
@@ -188,7 +188,7 @@ bot.onText(/\/youtube/, msg => {
 
 bot.onText(/\/discord/, msg => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://discord.gg/eAJrmA5jE", {
+  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://firefoxmckingdomstore.vercel.app/Discord", {
     reply_markup: { inline_keyboard: [[{ text: "Join", url: discord }]] }
   })
 })
@@ -240,4 +240,4 @@ bot.on("callback_query", query => {
   }
 })
 
-console.log("🔥 CLEAN BOT RUNNING 24/7")
+console.log("🔥 Running...")
