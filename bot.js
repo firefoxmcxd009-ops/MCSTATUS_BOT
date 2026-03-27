@@ -81,13 +81,13 @@ async function sendServer(chatId, ip) {
     message += `🟢 *Status:* Online\n`
     message += `📦 *Version:* ${version}\n`
     message += `👥 *Players:* ${playersOnline}/${playersMax}\n`
-    message += `📶 *Ping:* ${ping} ms`
+    message += `📶 *Ping:* ${ping} ms\n\n`
+    message += `🔗 Tools ច្រើនជាងនេះ » https://foxmcstatus.vercel.app`
 
     bot.sendMessage(chatId, message, {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
-          [{ text: "📋 Copy IP", callback_data: "copy_" + ip }],
           [{ text: "🔄 Refresh", callback_data: "refresh_" + ip }]
         ]
       }
@@ -95,7 +95,7 @@ async function sendServer(chatId, ip) {
 
   } catch (err) {
     console.log(err)
-    bot.sendMessage(chatId, "💀​​​ ខ្ញុំហត់ហើយ...")
+    bot.sendMessage(chatId, "💀 ខ្ញុំហត់ហើយ...")
   }
 }
 
@@ -193,7 +193,7 @@ bot.onText(/\/discord/, msg => {
   })
 })
 
-// 📩 MESSAGE HANDLER (FIXED)
+// 📩 MESSAGE HANDLER (FINAL FIX)
 bot.on("message", msg => {
 
   const text = msg.text
@@ -201,33 +201,31 @@ bot.on("message", msg => {
 
   saveUser(msg.chat.id)
 
-  // command list
   if (text === "/") {
     let list = "📜 Commands:\n"
     for (let cmd in commands) list += cmd + "\n"
     return bot.sendMessage(msg.chat.id, list)
   }
 
-  // unknown command
   if (text.startsWith("/") && !commands[text]) {
     return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ខំមិនទេ!")
   }
 
-  // ✅ ONLY IP (must contain ".")
+  // ❌ Silent block PORT (no reply)
+  if (text.includes(":")) {
+    return
+  }
+
+  // ✅ ONLY IP
   if (!text.startsWith("/") && text.includes(".")) {
     sendServer(msg.chat.id, text)
   }
 
-  // ❌ no "." → no reply
 })
 
 // 🔘 Buttons
 bot.on("callback_query", query => {
   const chatId = query.message.chat.id
-
-  if (query.data.startsWith("copy_")) {
-    sendServer(chatId, query.data.replace("copy_", ""))
-  }
 
   if (query.data.startsWith("refresh_")) {
     sendServer(chatId, query.data.replace("refresh_", ""))
