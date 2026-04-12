@@ -91,22 +91,21 @@ function createBlueMessage(ip, data) {
     "Minecraft Server"
 
   return `
-🔷 <b>MC SERVER STATUS</b>
+🔷 <b>FOXMCSTATUS</b>
 
-🖥 <b>Server:</b> <code>${ip}</code>
-🌐 <b>SRV Host:</b> <code>${data.hostname || ip}</code>
-🔌 <b>Port:</b> <code>${data.port || "19132 / 25565"}</code>
+〓 <b>IP:</b> <code>${data.hostname || ip}</code>
+✎ <b>Port:</b> <code>${data.port || "19132 / 25565"}</code>
 
-🟢 <b>Status:</b> Online
-📦 <b>Version:</b> ${version}
-👥 <b>Players:</b> ${playersOnline}/${playersMax}
-📶 <b>Ping:</b> ${ping}
+⎔ <b>Status:</b> Online
+★ <b>Version:</b> ${version}
+☘ <b>Players:</b> ${playersOnline}/${playersMax}
+彡 <b>Ping:</b> ${ping}
 
-💬 <b>MOTD:</b>
+☾ <b>MOTD:</b>
 <blockquote>${motd}</blockquote>
 
 ━━━━━━━━━━━━━━
-🔗 <a href="https://foxmcstatus.vercel.app">More Tools</a>
+༺ <a href="https://foxmcstatus.vercel.app">More Tools</a>
 `
 }
 
