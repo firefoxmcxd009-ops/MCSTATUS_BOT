@@ -14,35 +14,58 @@ const telegram = process.env.TELEGRAM
 const youtube = process.env.YOUTUBE
 const discord = process.env.DISCORD
 
-// ✅ Bot
+// =======================
+// 🤖 TELEGRAM BOT
+// =======================
 const bot = new TelegramBot(token, {
-  polling: { interval: 300, autoStart: true, params: { timeout: 10 } }
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: { timeout: 10 }
+  }
 })
 
-// 🌐 Express
+// =======================
+// 🌐 EXPRESS KEEP ALIVE
+// =======================
 const app = express()
 const PORT = process.env.PORT || 3000
-app.get("/", (req, res) => res.send("Bot Running 🚀"))
-app.listen(PORT)
 
-// 🔥 Self-ping
+app.get("/", (req, res) => {
+  res.send("✅ Telegram Minecraft Status Bot Running")
+})
+
+app.listen(PORT, () => {
+  console.log(`🌍 Web running on port ${PORT}`)
+})
+
+// =======================
+// 🔁 SELF PING
+// =======================
 if (process.env.APP_URL) {
   setInterval(() => {
     axios.get(process.env.APP_URL).catch(() => {})
   }, 300000)
 }
 
-// 💥 Anti crash
-process.on("uncaughtException", console.log)
-process.on("unhandledRejection", console.log)
+// =======================
+// 🛡️ ANTI CRASH
+// =======================
+process.on("uncaughtException", console.error)
+process.on("unhandledRejection", console.error)
 
-// ⏳ Cooldown
+// =======================
+// ⏳ COOLDOWN
+// =======================
 const cooldown = {}
 const cooldownTime = 10000
 
-// 📊 Users
+// =======================
+// 👥 USERS
+// =======================
 let users = []
 const USERS_FILE = "./users.json"
+
 if (fs.existsSync(USERS_FILE)) {
   users = JSON.parse(fs.readFileSync(USERS_FILE))
 }
@@ -50,152 +73,250 @@ if (fs.existsSync(USERS_FILE)) {
 function saveUser(id) {
   if (!users.includes(id)) {
     users.push(id)
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users))
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2))
   }
 }
 
-// 📡 Server Status
-async function sendServer(chatId, ip) {
+// =======================
+// 🎨 TELEGRAM BLUE EMBED
+// =======================
+function createBlueMessage(ip, data) {
+  const playersOnline = data.players?.online || 0
+  const playersMax = data.players?.max || 0
+  const version = data.version || "Unknown"
+  const ping = data.debug?.ping ? `${data.debug.ping} ms` : "N/A"
+  const motd =
+    data.motd?.clean?.join(" ") ||
+    data.hostname ||
+    "Minecraft Server"
 
+  return `
+🔷 <b>MC SERVER STATUS</b>
+
+🖥 <b>Server:</b> <code>${ip}</code>
+🌐 <b>SRV Host:</b> <code>${data.hostname || ip}</code>
+🔌 <b>Port:</b> <code>${data.port || "19132 / 25565"}</code>
+
+🟢 <b>Status:</b> Online
+📦 <b>Version:</b> ${version}
+👥 <b>Players:</b> ${playersOnline}/${playersMax}
+📶 <b>Ping:</b> ${ping}
+
+💬 <b>MOTD:</b>
+<blockquote>${motd}</blockquote>
+
+━━━━━━━━━━━━━━
+🔗 <a href="https://foxmcstatus.vercel.app">More Tools</a>
+`
+}
+
+// =======================
+// 📡 SERVER STATUS
+// =======================
+async function sendServer(chatId, ip) {
   const now = Date.now()
+
   if (cooldown[chatId] && now - cooldown[chatId] < cooldownTime) {
-    return bot.sendMessage(chatId, "⏳ ចាំតិចមើល...")
+    return bot.sendMessage(chatId, "⏳ សូមរង់ចាំបន្តិច...")
   }
 
   cooldown[chatId] = now
 
   try {
-    const res = await axios.get(`https://api.mcsrvstat.us/3/${ip}`, { timeout: 5000 })
+    const res = await axios.get(
+      `https://api.mcsrvstat.us/3/${ip}`,
+      { timeout: 6000 }
+    )
+
     const data = res.data
 
     if (!data.online) {
-      return bot.sendMessage(chatId, "❌ Server Offline/Not found")
+      return bot.sendMessage(chatId, `
+❌ <b>Server Offline / Not Found</b>
+
+🖥 <code>${ip}</code>
+`, {
+        parse_mode: "HTML"
+      })
     }
 
-    const playersOnline = data.players?.online || 0
-    const playersMax = data.players?.max || 0
-    const version = data.version || "Unknown"
-    const ping = data.debug?.ping || "N/A"
-
-    let message = `🖥 *Server:* ${ip}\n`
-    message += `🟢 *Status:* Online\n`
-    message += `📦 *Version:* ${version}\n`
-    message += `👥 *Players:* ${playersOnline}/${playersMax}\n`
-    message += `📶 *Ping:* ${ping} ms\n\n`
-    message += `🔗 Tools ច្រើនជាងនេះ » https://foxmcstatus.vercel.app`
+    const message = createBlueMessage(ip, data)
 
     bot.sendMessage(chatId, message, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
       reply_markup: {
         inline_keyboard: [
-          [{ text: "🔄 Refresh", callback_data: "refresh_" + ip }]
+          [
+            {
+              text: "🔄 Refresh",
+              callback_data: `refresh_${ip}`
+            }
+          ]
         ]
       }
     })
-
   } catch (err) {
-    console.log(err)
-    bot.sendMessage(chatId, "💀 ខ្ញុំហត់ហើយ...")
+    console.error(err)
+
+    bot.sendMessage(chatId, `
+💀 <b>Bot Error</b>
+
+សេវាកម្មកំពុងមានបញ្ហា សូមសាកម្ដងទៀត។
+`, {
+      parse_mode: "HTML"
+    })
   }
 }
 
-// 📜 Commands
+// =======================
+// 📜 COMMANDS
+// =======================
 const commands = {
   "/start": "Show commands",
   "/status": "Check default server",
   "/store": "Open store",
-  "/social": "Social media links",
+  "/social": "Social links",
   "/tiktok": "TikTok",
   "/telegram": "Telegram",
   "/youtube": "YouTube",
   "/discord": "Discord"
 }
 
-// /start
-bot.onText(/\/start/, msg => {
+// =======================
+// 🚀 START
+// =======================
+bot.onText(/\/start/, (msg) => {
   saveUser(msg.chat.id)
 
-  let text = "👋 សួរស្តីប្រូៗ ខ្ញុំជា bot សម្រាប់ឆែកមើល Status Server\nCommands:\n"
-  text += "⚡ខំមិនដែលត្រូវប្រើ ;)\n______________\n"
+  let text = `
+👋 <b>សួស្តី!</b>
+
+ខ្ញុំជា Minecraft Status Bot 🔷
+
+📜 <b>Commands:</b>
+━━━━━━━━━━━━━━
+`
 
   for (let cmd in commands) {
     text += `${cmd} → ${commands[cmd]}\n`
   }
 
-  text += "ជួយ Follow Tiktok ម្នាក់មួយផង :)\n Type any server IP to check status\n🇰🇭 វាយ IP server ដើម្បីមើល status"
+  text += `
+━━━━━━━━━━━━━━
+🌐 វាយ IP / Domain server ដើម្បីឆែក status
+✅ Support SRV Record + Port
+
+ឧទាហរណ៍:
+<code>play.hypixel.net</code>
+<code>play.example.com:25565</code>
+`
 
   bot.sendMessage(msg.chat.id, text, {
+    parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "👥 បង្ហាញអ្នកប្រើប្រាស់", callback_data: "show_users" }]
+        [
+          {
+            text: "👥 Total Users",
+            callback_data: "show_users"
+          }
+        ]
       ]
     }
   })
 })
 
+// =======================
 // /status
-bot.onText(/\/status/, msg => {
+// =======================
+bot.onText(/\/status/, (msg) => {
   saveUser(msg.chat.id)
   sendServer(msg.chat.id, defaultServer)
 })
 
+// =======================
 // /store
-bot.onText(/\/store/, msg => {
+// =======================
+bot.onText(/\/store/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "🛒 Webstore:\n https://firefoxmckingdomstore.vercel.app", {
-    reply_markup: {
-      inline_keyboard: [[{ text: "Open Store", url: storeUrl }]]
+
+  bot.sendMessage(
+    msg.chat.id,
+    "🛒 <b>Web Store</b>",
+    {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "🛍 Open Store", url: storeUrl }]
+        ]
+      }
     }
-  })
+  )
 })
 
+// =======================
 // /social
-bot.onText(/\/social/, msg => {
+// =======================
+bot.onText(/\/social/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "✨ Social Media", {
+
+  bot.sendMessage(msg.chat.id, "✨ <b>Social Media</b>", {
+    parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "TikTok", url: tiktok }],
-        [{ text: "Telegram", url: telegram }],
-        [{ text: "YouTube", url: youtube }],
-        [{ text: "Discord", url: discord }]
+        [{ text: "🎵 TikTok", url: tiktok }],
+        [{ text: "📢 Telegram", url: telegram }],
+        [{ text: "▶ YouTube", url: youtube }],
+        [{ text: "💬 Discord", url: discord }]
       ]
     }
   })
 })
 
-// individual
-bot.onText(/\/tiktok/, msg => {
+// =======================
+// INDIVIDUAL SOCIAL
+// =======================
+bot.onText(/\/tiktok/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "🔥TikTok:\n https://tiktok.com/@firefoxmc.xd", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: tiktok }]] }
+  bot.sendMessage(msg.chat.id, "🎵 TikTok", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "Open", url: tiktok }]]
+    }
   })
 })
 
-bot.onText(/\/telegram/, msg => {
+bot.onText(/\/telegram/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "⚡Telegram:\n https://t.me/firefoxmc_xd", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: telegram }]] }
+  bot.sendMessage(msg.chat.id, "📢 Telegram", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "Open", url: telegram }]]
+    }
   })
 })
 
-bot.onText(/\/youtube/, msg => {
+bot.onText(/\/youtube/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "🌊YouTube:\n https://youtube.com/@site_mckingdom", {
-    reply_markup: { inline_keyboard: [[{ text: "Open", url: youtube }]] }
+  bot.sendMessage(msg.chat.id, "▶ YouTube", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "Open", url: youtube }]]
+    }
   })
 })
 
-bot.onText(/\/discord/, msg => {
+bot.onText(/\/discord/, (msg) => {
   saveUser(msg.chat.id)
-  bot.sendMessage(msg.chat.id, "🌀Discord:\n https://firefoxmckingdomstore.vercel.app/Discord", {
-    reply_markup: { inline_keyboard: [[{ text: "Join", url: discord }]] }
+  bot.sendMessage(msg.chat.id, "💬 Discord", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "Join", url: discord }]]
+    }
   })
 })
 
-// 📩 MESSAGE HANDLER (FINAL FIX)
-bot.on("message", msg => {
-
+// =======================
+// 📩 MESSAGE HANDLER
+// =======================
+bot.on("message", (msg) => {
   const text = msg.text
   if (!text) return
 
@@ -204,31 +325,29 @@ bot.on("message", msg => {
   if (text === "/") {
     let list = "📜 Commands:\n"
     for (let cmd in commands) list += cmd + "\n"
+
     return bot.sendMessage(msg.chat.id, list)
   }
 
   if (text.startsWith("/") && !commands[text]) {
-    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ខំមិនទេ!")
+    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ command!")
   }
 
-  // ❌ Silent block PORT (no reply)
-  if (text.includes(":")) {
-    return
+  // ✅ Allow normal IP / domain / SRV / port
+  if (!text.startsWith("/") && (text.includes(".") || text.includes(":"))) {
+    sendServer(msg.chat.id, text.trim())
   }
-
-  // ✅ ONLY IP
-  if (!text.startsWith("/") && text.includes(".")) {
-    sendServer(msg.chat.id, text)
-  }
-
 })
 
-// 🔘 Buttons
-bot.on("callback_query", query => {
+// =======================
+// 🔘 BUTTONS
+// =======================
+bot.on("callback_query", (query) => {
   const chatId = query.message.chat.id
 
   if (query.data.startsWith("refresh_")) {
-    sendServer(chatId, query.data.replace("refresh_", ""))
+    const ip = query.data.replace("refresh_", "")
+    sendServer(chatId, ip)
   }
 
   if (query.data === "show_users") {
@@ -238,4 +357,4 @@ bot.on("callback_query", query => {
   }
 })
 
-console.log("🔥 Running...")
+console.log("🔥 Telegram MC Bot Running...")
