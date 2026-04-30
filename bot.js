@@ -263,7 +263,7 @@ bot.onText(/\/status/, async (msg) => {
     const version = data.version || "Unknown"
     const port = data.port || "25565"
 
-    let message = `Fox MC Kingdom
+    let message = `foxmckingdom ai
 
 • IP: ${serverIP}
 • Port: ${port}
