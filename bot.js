@@ -9,6 +9,7 @@ const token = process.env.BOT_TOKEN
 const serverIP = process.env.SERVER_IP || "foxmckingdom.mcpc.ink"
 const storeUrl = process.env.STORE_URL
 const geminiKey = process.env.GEMINI_API_KEY
+const serverIconUrl = process.env.SERVER_ICON_URL || "https://eu.mc-api.net/v3/server/favicon/foxmckingdom.mcpc.ink"
 
 const tiktok = process.env.TIKTOK
 const telegram = process.env.TELEGRAM
@@ -16,7 +17,7 @@ const youtube = process.env.YOUTUBE
 const discord = process.env.DISCORD
 
 // =======================
-// 🤖 TELEGRAM BOT
+// TELEGRAM BOT
 // =======================
 const bot = new TelegramBot(token, {
   polling: {
@@ -27,7 +28,7 @@ const bot = new TelegramBot(token, {
 })
 
 // =======================
-// 🌐 EXPRESS KEEP ALIVE
+// EXPRESS KEEP ALIVE
 // =======================
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -37,11 +38,11 @@ app.get("/", (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`🌍 Web running on port ${PORT}`)
+  console.log(`Web running on port ${PORT}`)
 })
 
 // =======================
-// 🔁 SELF PING
+// SELF PING
 // =======================
 if (process.env.APP_URL) {
   setInterval(() => {
@@ -50,19 +51,19 @@ if (process.env.APP_URL) {
 }
 
 // =======================
-// 🛡️ ANTI CRASH
+// ANTI CRASH
 // =======================
 process.on("uncaughtException", console.error)
 process.on("unhandledRejection", console.error)
 
 // =======================
-// ⏳ COOLDOWN
+// COOLDOWN
 // =======================
 const cooldown = {}
 const cooldownTime = 5000
 
 // =======================
-// 👥 USERS
+// USERS
 // =======================
 let users = []
 const USERS_FILE = "./users.json"
@@ -79,19 +80,7 @@ function saveUser(id) {
 }
 
 // =======================
-// 🎮 RANK SYMBOLS MAP
-// =======================
-const rankSymbols = {
-  "admin": "👑",
-  "owner": "🔱",
-  "mod": "🛡️",
-  "vip": "⭐",
-  "member": "👤",
-  "default": "⚪"
-}
-
-// =======================
-// 📋 FORMAT PLAYER LIST
+// FORMAT PLAYER LIST
 // =======================
 function formatPlayerList(data) {
   if (!data.players || !data.players.sample || data.players.sample.length === 0) {
@@ -100,34 +89,14 @@ function formatPlayerList(data) {
 
   let playerList = ""
   data.players.sample.forEach((player) => {
-    const rank = player.name.toLowerCase().includes("admin") ? "admin" :
-                 player.name.toLowerCase().includes("owner") ? "owner" :
-                 player.name.toLowerCase().includes("mod") ? "mod" :
-                 player.name.toLowerCase().includes("vip") ? "vip" :
-                 "member"
-    
-    const symbol = rankSymbols[rank] || rankSymbols["default"]
-    playerList += `${symbol} ${player.name}\n`
+    playerList += `• ${player.name}\n`
   })
 
   return playerList
 }
 
 // =======================
-// 🎨 DETECT SERVER TYPE
-// =======================
-function detectServerType(data) {
-  if (data.version && data.version.toLowerCase().includes("bedrock")) {
-    return "🟧 Bedrock"
-  }
-  if (data.platform === "bedrock") {
-    return "🟧 Bedrock"
-  }
-  return "📦 Java"
-}
-
-// =======================
-// 🎨 REAL-TIME SERVER STATUS
+// GET REAL-TIME STATUS
 // =======================
 async function getRealTimeStatus() {
   try {
@@ -143,85 +112,29 @@ async function getRealTimeStatus() {
 }
 
 // =======================
-// 🎨 TELEGRAM BLUE EMBED
-// =======================
-function createBlueMessage(data) {
-  if (!data || !data.online) {
-    return `
-❌ <b>Server Offline</b>
-
-🖥 <code>${serverIP}</code>
-
-<i>The server is currently unavailable.</i>
-`
-  }
-
-  const playersOnline = data.players?.online || 0
-  const playersMax = data.players?.max || 0
-  const version = data.version || "Unknown"
-  const ping = data.debug?.ping ? `${data.debug.ping} ms` : "N/A"
-  const motd = data.motd?.clean?.join(" ") || data.hostname || "Fox MC Kingdom"
-  const port = data.port || "25565"
-  const serverType = detectServerType(data)
-  const playerList = formatPlayerList(data)
-
-  return `
-🔷 <b>FOX MC KINGDOM</b>
-
-╭─────────────────────
-│ <b>📍 Server Info</b>
-├─────────────────────
-│ 🌐 <b>IP:</b> <code>${data.hostname || serverIP}</code>
-│ 🔌 <b>Port:</b> <code>${port}</code>
-│ 🖥️ <b>Type:</b> ${serverType}
-│ 📌 <b>Version:</b> ${version}
-╰─────────────────────
-
-╭─────────────────────
-│ <b>⚡ Live Status</b>
-├─────────────────────
-│ 🟢 <b>Status:</b> <code>Online</code>
-│ 📊 <b>Players:</b> <code>${playersOnline}/${playersMax}</code>
-│ 📡 <b>Ping:</b> <code>${ping}</code>
-╰─────────────────────
-
-╭─────────────────────
-│ <b>🎯 MOTD</b>
-├─────────────────────
-│ <blockquote>${motd}</blockquote>
-╰─────────────────────
-
-<b>👥 Online Players (${playersOnline}):</b>
-<blockquote>${playerList}</blockquote>
-
-━━━━━━━━━━━━━━━━━━━━
-`
-}
-
-// =======================
-// 🤖 GEMINI AI INTEGRATION
+// GEMINI AI INTEGRATION
 // =======================
 async function askGeminiAI(question, serverData) {
   if (!geminiKey) {
-    return "❌ AI service not configured. Please set GEMINI_API_KEY in .env"
+    return "AI service not configured. Please set GEMINI_API_KEY in .env"
   }
 
   try {
-    const serverInfo = serverData ? `
+    const serverInfo = serverData && serverData.online ? `
 Current Server Status:
 - Players Online: ${serverData.players?.online || 0}/${serverData.players?.max || 0}
-- Server Type: ${detectServerType(serverData)}
 - Version: ${serverData.version || "Unknown"}
-- Status: ${serverData.online ? "Online" : "Offline"}
-- Ping: ${serverData.debug?.ping || "N/A"} ms
+- Status: Online
     ` : ""
 
-    const prompt = `You are a helpful Minecraft server assistant for Fox MC Kingdom server (${serverIP}). 
+    const prompt = `You are a helpful Minecraft server assistant for Fox MC Kingdom server.
 ${serverInfo}
 
 User Question: ${question}
 
-Provide a helpful, friendly response about the server or Minecraft in general. Keep it concise (under 100 words if possible).`
+Provide a helpful, friendly response. Keep it concise (2-3 sentences).`
+
+    console.log("Sending AI request...")
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`,
@@ -236,170 +149,231 @@ Provide a helpful, friendly response about the server or Minecraft in general. K
           }
         ]
       },
-      { timeout: 10000 }
+      { timeout: 15000 }
     )
 
-    const aiResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI"
-    return aiResponse
+    if (!response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.log("AI Response structure:", JSON.stringify(response.data, null, 2))
+      return "No response from AI service"
+    }
+
+    return response.data.candidates[0].content.parts[0].text
 
   } catch (err) {
-    console.error("Gemini API error:", err.message)
-    return "❌ AI service error. Please try again later."
-  }
-}
-
-// =======================
-// 📡 SEND SERVER STATUS
-// =======================
-async function sendServer(chatId) {
-  const now = Date.now()
-
-  if (cooldown[chatId] && now - cooldown[chatId] < cooldownTime) {
-    return bot.sendMessage(chatId, "⏳ សូមរង់ចាំបន្តិច...", {
-      parse_mode: "HTML"
+    console.error("Gemini API error:", {
+      message: err.message,
+      status: err.response?.status,
+      code: err.code
     })
-  }
 
-  cooldown[chatId] = now
-
-  const data = await getRealTimeStatus()
-  const message = createBlueMessage(data)
-
-  bot.sendMessage(chatId, message, {
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "🔄 Refresh",
-            callback_data: "refresh_status"
-          },
-          {
-            text: "❌ Close",
-            callback_data: "close"
-          }
-        ]
-      ]
+    if (err.response?.status === 400) {
+      return "Invalid API key. Check your GEMINI_API_KEY in .env"
     }
-  })
+    if (err.response?.status === 403) {
+      return "API access denied. Enable Generative Language API in Google Cloud."
+    }
+
+    return "AI service error: " + err.message
+  }
 }
 
 // =======================
-// 📜 COMMANDS
+// COMMANDS
 // =======================
 const commands = {
-  "/start": "🚀 Show commands",
-  "/status": "📊 Live server status",
-  "/players": "👥 Player list info",
-  "/rank": "🏆 Rank symbols",
-  "/store": "🛒 Open store",
-  "/ai": "🤖 Ask about server (use /ai <question>)",
-  "/social": "✨ Social links",
+  "/start": "Show commands",
+  "/status": "Server info",
+  "/list": "Online players",
+  "/ai": "Ask AI (use /ai <question>)",
+  "/store": "Open store",
+  "/social": "Social links"
 }
 
 // =======================
-// 🚀 START
+// START
 // =======================
 bot.onText(/\/start/, (msg) => {
   saveUser(msg.chat.id)
 
-  let text = `
-👋 <b>សួស្តី! Welcome to Fox MC Kingdom!</b>
+  let text = `Fox MC Kingdom Bot
 
-🔷 <b>Official Server Bot</b>
-
-📜 <b>Available Commands:</b>
-━━━━━━━━━━━━━━━━━━━━
+Available Commands:
 `
 
   for (let cmd in commands) {
-    text += `<code>${cmd}</code> → ${commands[cmd]}\n`
+    text += `${cmd} - ${commands[cmd]}\n`
   }
 
   text += `
-━━━━━━━━━━━━━━━━━━━━
+Server: ${serverIP}
 
-🎮 <b>Server Info:</b>
-📍 <code>${serverIP}</code>
+Total Users: ${users.length}`
 
-⭐ <b>Features:</b>
-✅ Real-time server status
-✅ Player tracking
-✅ AI server assistant
-✅ Store access
-✅ Social links
-
-🤖 <b>AI Assistant:</b>
-Ask anything about the server:
-<code>/ai How many players online?</code>
-<code>/ai What's the server version?</code>
-`
-
-  bot.sendMessage(msg.chat.id, text, {
-    parse_mode: "HTML",
+  bot.sendPhoto(msg.chat.id, serverIconUrl, {
+    caption: text,
     reply_markup: {
       inline_keyboard: [
         [
           {
-            text: "📊 Check Status",
+            text: "Check Status",
             callback_data: "check_status"
-          }
-        ],
-        [
-          {
-            text: "👥 Total Users: " + users.length,
-            callback_data: "show_users"
           }
         ]
       ]
     }
+  }).catch(() => {
+    // If icon fails, send without image
+    bot.sendMessage(msg.chat.id, text, {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Check Status",
+              callback_data: "check_status"
+            }
+          ]
+        ]
+      }
+    })
   })
 })
 
 // =======================
-// /status
+// STATUS
 // =======================
-bot.onText(/\/status/, (msg) => {
+bot.onText(/\/status/, async (msg) => {
   saveUser(msg.chat.id)
-  sendServer(msg.chat.id)
+  const chatId = msg.chat.id
+
+  const loadingMsg = await bot.sendMessage(chatId, "Loading...")
+
+  try {
+    const data = await getRealTimeStatus()
+
+    if (!data || !data.online) {
+      await bot.editMessageText("Server Offline", {
+        chat_id: chatId,
+        message_id: loadingMsg.message_id
+      })
+      return
+    }
+
+    const playersOnline = data.players?.online || 0
+    const playersMax = data.players?.max || 0
+    const version = data.version || "Unknown"
+    const port = data.port || "25565"
+
+    let message = `Fox MC Kingdom
+
+• IP: ${serverIP}
+• Port: ${port}
+• Version: ${version}
+• Players: ${playersOnline}/${playersMax}`
+
+    await bot.editMessageText(message, {
+      chat_id: chatId,
+      message_id: loadingMsg.message_id,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Refresh",
+              callback_data: "refresh_status"
+            }
+          ]
+        ]
+      }
+    })
+  } catch (err) {
+    console.error("Status command error:", err)
+    await bot.editMessageText("Error fetching status", {
+      chat_id: chatId,
+      message_id: loadingMsg.message_id
+    })
+  }
 })
 
 // =======================
-// /ai <question>
+// LIST
+// =======================
+bot.onText(/\/list/, async (msg) => {
+  saveUser(msg.chat.id)
+  const chatId = msg.chat.id
+
+  const loadingMsg = await bot.sendMessage(chatId, "Loading...")
+
+  try {
+    const data = await getRealTimeStatus()
+
+    if (!data || !data.online) {
+      await bot.editMessageText("Server Offline", {
+        chat_id: chatId,
+        message_id: loadingMsg.message_id
+      })
+      return
+    }
+
+    const playersOnline = data.players?.online || 0
+    const playersMax = data.players?.max || 0
+    const playerList = formatPlayerList(data)
+
+    let message = `Online Players (${playersOnline}/${playersMax})
+
+${playerList}`
+
+    await bot.editMessageText(message, {
+      chat_id: chatId,
+      message_id: loadingMsg.message_id,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Refresh",
+              callback_data: "refresh_players"
+            }
+          ]
+        ]
+      }
+    })
+  } catch (err) {
+    console.error("List command error:", err)
+    await bot.editMessageText("Error fetching player list", {
+      chat_id: chatId,
+      message_id: loadingMsg.message_id
+    })
+  }
+})
+
+// =======================
+// AI
 // =======================
 bot.onText(/\/ai\s+(.+)/, async (msg, match) => {
   saveUser(msg.chat.id)
   const question = match[1].trim()
   const chatId = msg.chat.id
 
-  const loadingMsg = await bot.sendMessage(chatId, "🤖 <b>Thinking...</b>", {
-    parse_mode: "HTML"
-  })
+  console.log("User question:", question)
+
+  const loadingMsg = await bot.sendMessage(chatId, "Thinking...")
 
   try {
     const serverData = await getRealTimeStatus()
     const aiResponse = await askGeminiAI(question, serverData)
 
+    console.log("AI Response ready")
+
     await bot.editMessageText(
-      `🤖 <b>Fox MC Kingdom AI</b>
+      `Question: ${question}
 
-<b>❓ Your Question:</b>
-<i>${question}</i>
-
-<b>💭 Answer:</b>
-<blockquote>${aiResponse}</blockquote>
-
-━━━━━━━━━━━━━━━━━━━━`,
+Answer: ${aiResponse}`,
       {
         chat_id: chatId,
         message_id: loadingMsg.message_id,
-        parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
             [
               {
-                text: "🔄 Ask Another",
+                text: "Ask Another",
                 callback_data: "ask_again"
               }
             ]
@@ -409,142 +383,48 @@ bot.onText(/\/ai\s+(.+)/, async (msg, match) => {
     )
   } catch (err) {
     console.error("AI command error:", err)
-    await bot.editMessageText(
-      "❌ Error processing your question. Please try again.",
-      {
-        chat_id: chatId,
-        message_id: loadingMsg.message_id,
-        parse_mode: "HTML"
-      }
-    )
+    await bot.editMessageText("Error processing your question", {
+      chat_id: chatId,
+      message_id: loadingMsg.message_id
+    })
   }
 })
 
 // =======================
-// /players
-// =======================
-bot.onText(/\/players/, (msg) => {
-  saveUser(msg.chat.id)
-
-  bot.sendMessage(msg.chat.id, `
-👥 <b>Player List</b>
-
-The server shows all online players in the status message with their ranks:
-
-👑 <b>Admin</b> - Server administrators
-🔱 <b>Owner</b> - Server owner
-🛡️ <b>Mod</b> - Moderators
-⭐ <b>VIP</b> - VIP members
-👤 <b>Member</b> - Regular members
-⚪ <b>Default</b> - New players
-
-Use <code>/status</code> to see who's currently online!
-`, {
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "📊 Check Status",
-            callback_data: "check_status"
-          }
-        ]
-      ]
-    }
-  })
-})
-
-// =======================
-// /rank
-// =======================
-bot.onText(/\/rank/, (msg) => {
-  saveUser(msg.chat.id)
-
-  let rankText = `
-🏆 <b>Server Rank Symbols</b>
-
-━━━━━━━━━━━━━━━━━━━━
-`
-
-  for (let rank in rankSymbols) {
-    rankText += `${rankSymbols[rank]} <b>${rank.toUpperCase()}</b>\n`
-  }
-
-  rankText += `
-━━━━━━━━━━━━━━━━━━━━
-
-These symbols appear next to player names when viewing the server status. They indicate the player's role on the server.
-
-Want to upgrade your rank? Visit the store!
-`
-
-  bot.sendMessage(msg.chat.id, rankText, {
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "🛒 Visit Store",
-            callback_data: "open_store"
-          }
-        ]
-      ]
-    }
-  })
-})
-
-// =======================
-// /store
+// STORE
 // =======================
 bot.onText(/\/store/, (msg) => {
   saveUser(msg.chat.id)
 
-  bot.sendMessage(
-    msg.chat.id,
-    `🛒 <b>Kingdom Store</b>
-
-Welcome to the Fox MC Kingdom store! Purchase ranks, items, and more to enhance your gameplay.
-
-<a href="${storeUrl}">🛍 Open Store</a>
-
-Store Features:
-✅ VIP & Premium ranks
-✅ Cosmetics & items
-✅ Supporter benefits
-✅ Exclusive features
-`,
-    {
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "🛍 Visit Store", url: storeUrl }]
-        ]
-      }
-    }
-  )
-})
-
-// =======================
-// /social
-// =======================
-bot.onText(/\/social/, (msg) => {
-  saveUser(msg.chat.id)
-
-  bot.sendMessage(msg.chat.id, "✨ <b>Follow Fox MC Kingdom</b>\n\nStay connected with us on social media!", {
-    parse_mode: "HTML",
+  bot.sendMessage(msg.chat.id, "Kingdom Store", {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "🎵 TikTok", url: tiktok }],
-        [{ text: "📢 Telegram", url: telegram }],
-        [{ text: "▶ YouTube", url: youtube }],
-        [{ text: "💬 Discord", url: discord }]
+        [{ text: "Visit Store", url: storeUrl }]
       ]
     }
   })
 })
 
 // =======================
-// 📩 MESSAGE HANDLER
+// SOCIAL
+// =======================
+bot.onText(/\/social/, (msg) => {
+  saveUser(msg.chat.id)
+
+  bot.sendMessage(msg.chat.id, "Follow Fox MC Kingdom", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "TikTok", url: tiktok }],
+        [{ text: "Telegram", url: telegram }],
+        [{ text: "YouTube", url: youtube }],
+        [{ text: "Discord", url: discord }]
+      ]
+    }
+  })
+})
+
+// =======================
+// MESSAGE HANDLER
 // =======================
 bot.on("message", (msg) => {
   const text = msg.text
@@ -552,75 +432,107 @@ bot.on("message", (msg) => {
 
   saveUser(msg.chat.id)
 
-  if (text === "/") {
-    let list = "📜 <b>Commands:</b>\n"
-    for (let cmd in commands) {
-      list += `<code>${cmd}</code>\n`
-    }
-
-    return bot.sendMessage(msg.chat.id, list, {
-      parse_mode: "HTML"
-    })
-  }
-
   if (text.startsWith("/") && !commands[text] && !text.startsWith("/ai")) {
-    return bot.sendMessage(msg.chat.id, "❌ មិនស្គាល់ command! Use /start to see available commands.", {
-      parse_mode: "HTML"
-    })
+    return bot.sendMessage(msg.chat.id, "Unknown command! Use /start to see available commands.")
   }
 })
 
 // =======================
-// 🔘 CALLBACK BUTTONS
+// CALLBACK BUTTONS
 // =======================
 bot.on("callback_query", (query) => {
   const chatId = query.message.chat.id
 
-  if (query.data === "refresh_status" || query.data === "check_status") {
-    sendServer(chatId)
+  if (query.data === "check_status" || query.data === "refresh_status") {
+    const data = getRealTimeStatus().then((data) => {
+      if (!data || !data.online) {
+        bot.editMessageText("Server Offline", {
+          chat_id: chatId,
+          message_id: query.message.message_id
+        })
+        return
+      }
+
+      const playersOnline = data.players?.online || 0
+      const playersMax = data.players?.max || 0
+      const version = data.version || "Unknown"
+      const port = data.port || "25565"
+
+      let message = `Fox MC Kingdom
+
+• IP: ${serverIP}
+• Port: ${port}
+• Version: ${version}
+• Players: ${playersOnline}/${playersMax}`
+
+      bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Refresh",
+                callback_data: "refresh_status"
+              }
+            ]
+          ]
+        }
+      })
+    })
+
     bot.answerCallbackQuery(query.id, {
-      text: "🔄 Refreshing..."
+      text: "Refreshing..."
     })
   }
 
-  if (query.data === "show_users") {
-    bot.answerCallbackQuery(query.id, {
-      text: `👥 Total Users: ${users.length}`,
-      show_alert: true
-    })
-  }
+  if (query.data === "refresh_players") {
+    getRealTimeStatus().then((data) => {
+      if (!data || !data.online) {
+        bot.editMessageText("Server Offline", {
+          chat_id: chatId,
+          message_id: query.message.message_id
+        })
+        return
+      }
 
-  if (query.data === "open_store") {
+      const playersOnline = data.players?.online || 0
+      const playersMax = data.players?.max || 0
+      const playerList = formatPlayerList(data)
+
+      let message = `Online Players (${playersOnline}/${playersMax})
+
+${playerList}`
+
+      bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Refresh",
+                callback_data: "refresh_players"
+              }
+            ]
+          ]
+        }
+      })
+    })
+
     bot.answerCallbackQuery(query.id, {
-      text: "🛒 Opening store...",
-      show_alert: false
+      text: "Refreshing..."
     })
   }
 
   if (query.data === "ask_again") {
-    bot.sendMessage(chatId, `
-🤖 <b>Ask Fox MC Kingdom AI</b>
-
-Send me your question:
-<code>/ai What is the server IP?</code>
-<code>/ai How do I join?</code>
-<code>/ai Tell me about VIP rank</code>
-`, {
-      parse_mode: "HTML"
-    })
+    bot.sendMessage(chatId, "Send your next question with /ai <question>")
     bot.answerCallbackQuery(query.id, {
       text: "Ready for your question!"
     })
   }
-
-  if (query.data === "close") {
-    bot.deleteMessage(chatId, query.message.message_id).catch(() => {})
-    bot.answerCallbackQuery(query.id, {
-      text: "❌ Closed"
-    })
-  }
 })
 
-console.log("🔥 Fox MC Kingdom Bot Running...")
-console.log(`📍 Server: ${serverIP}`)
-console.log(`🤖 AI Integration: ${geminiKey ? "Enabled" : "Disabled"}`)
+console.log("Bot running...")
+console.log("Server:", serverIP)
+console.log("AI Integration:", geminiKey ? "Enabled" : "Disabled")
