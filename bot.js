@@ -9,7 +9,7 @@ const token = process.env.BOT_TOKEN
 const serverIP = process.env.SERVER_IP || "foxmckingdom.mcpc.ink"
 const storeUrl = process.env.STORE_URL
 const geminiKey = process.env.GEMINI_API_KEY
-const serverIconUrl = process.env.SERVER_ICON_URL || "https://eu.mc-api.net/v3/server/favicon/" + serverIP
+const serverIconUrl = process.env.SERVER_ICON_URL || "https://i.ibb.co/9mNwRTKF/minecraft-title.png"
 
 const tiktok = process.env.TIKTOK
 const telegram = process.env.TELEGRAM
