@@ -458,7 +458,7 @@ bot.on("callback_query", (query) => {
       const version = data.version || "Unknown"
       const port = data.port || "25565"
 
-      let message = `Fox MC Kingdom
+      let message = `foxmckingdom bot
 
 • IP: ${serverIP}
 • Port: ${port}
